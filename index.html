@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Arcade - Fajrin Widianto</title>
+    
+    <!-- Google Fonts: Press Start 2P untuk judul, VT323 untuk teks -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Library untuk efek suara (Tone.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+
+    <style>
+        /* ========================================
+        VARIABLES & GLOBAL STYLES
+        ========================================
+        */
+        :root {
+            --bg-color: #0d0c1d; /* Biru gelap kehitaman */
+            --primary-neon: #ff00ff; /* Neon Pink */
+            --secondary-neon: #00ffff; /* Neon Cyan */
+            --tertiary-neon: #9d00ff; /* Ungu Elektrik */
+            --text-color: #f0f0f0;
+            
+            --font-title: 'Press Start 2P', cursive;
+            --font-body: 'VT323', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            font-size: 24px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -2;
+            pointer-events: none;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(13, 12, 29, 0) 50%, rgba(13, 12, 29, 1) 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ========================================
+        UTILITIES & ANIMATIONS
+        ========================================
+        */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 0;
+        }
+
+        h1, h2 {
+            font-family: var(--font-title);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #ffffff;
+            text-shadow: 
+                0 0 7px var(--secondary-neon),
+                0 0 10px var(--secondary-neon),
+                0 0 21px var(--secondary-neon);
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ========================================
+        HEADER & NAVIGATION
+        ========================================
+        */
+        header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: rgba(13, 12, 29, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 0;
+            border-bottom: 2px solid var(--secondary-neon);
+            box-shadow: 0 0 15px var(--secondary-neon);
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-family: var(--font-title);
+            font-size: 0.8rem;
+            margin: 5px 15px;
+            padding: 5px 10px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary-neon);
+            text-shadow: 0 0 10px var(--primary-neon);
+            border: 2px solid var(--primary-neon);
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--primary-neon) inset, 0 0 10px var(--primary-neon);
+        }
+
+        /* ========================================
+        SECTIONS
+        ========================================
+        */
+        #home {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* === CSS BARU: Animasi untuk Home Section === */
+        #home .typing-effect {
+            font-size: 1.5rem;
+            margin: 0 auto 20px auto;
+            color: var(--secondary-neon);
+            
+            /* Properti untuk efek ketikan */
+            width: fit-content; /* Agar lebar sesuai teks */
+            overflow: hidden; /* Sembunyikan teks yang belum muncul */
+            border-right: 3px solid var(--secondary-neon); /* Kursor ketik */
+            white-space: nowrap; /* Teks tetap satu baris */
+            animation: 
+                typing 3.5s steps(22, end) forwards, /* 22 adalah jumlah karakter */
+                blink-caret .75s step-end infinite;
+        }
+
+        /* Keyframes untuk animasi ketikan */
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        /* Keyframes untuk kursor berkedip */
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--secondary-neon); }
+        }
+
+        #home .player-name {
+            font-family: var(--font-title);
+            font-size: 2.5rem;
+            color: var(--primary-neon);
+            text-shadow: 0 0 10px var(--primary-neon), 0 0 20px var(--primary-neon);
+            margin-top: 20px;
+            
+            /* Properti untuk animasi slide-in */
+            opacity: 0; /* Mulai dari transparan */
+            animation: slide-in-left 1s ease-out 3.5s forwards; /* Durasi 1s, delay 3.5s */
+        }
+
+        /* Keyframes untuk animasi slide-in dari kiri */
+        @keyframes slide-in-left {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .about-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: center;
+        }
+        .about-text { flex: 1; min-width: 300px; }
+        .skills-grid {
+            flex: 1;
+            min-width: 320px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+        .skill-item {
+            background-color: rgba(0, 255, 255, 0.05);
+            border: 2px solid var(--secondary-neon);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+        }
+        .skill-item:hover {
+            transform: translateY(-5px);
+            background-color: rgba(0, 255, 255, 0.15);
+            box-shadow: 0 0 15px var(--secondary-neon);
+        }
+        .skill-item svg { width: 48px; height: 48px; margin-bottom: 10px; fill: var(--secondary-neon); }
+        .skill-item p { font-family: var(--font-body); font-size: 1.2rem; line-height: 1.2; }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background-color: #1a1a2e;
+            border: 2px solid var(--primary-neon);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px transparent;
+        }
+        .card:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary-neon); }
+        .card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .card-content { padding: 20px; }
+        .card-content h3 { font-family: var(--font-title); font-size: 1.2rem; color: var(--primary-neon); margin-bottom: 10px; }
+        .card-content p { font-size: 1.1rem; margin-bottom: 15px; }
+        .card-content a { color: var(--secondary-neon); text-decoration: none; font-weight: bold; transition: text-shadow 0.3s; }
+        .card-content a:hover { text-shadow: 0 0 10px var(--secondary-neon); }
+
+        .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+        .timeline::after { content: ''; position: absolute; width: 4px; background-color: var(--tertiary-neon); top: 0; bottom: 0; left: 50%; margin-left: -2px; box-shadow: 0 0 10px var(--tertiary-neon); }
+        .timeline-item { padding: 10px 40px; position: relative; width: 50%; }
+        .timeline-item::after { content: ''; position: absolute; width: 20px; height: 20px; right: -10px; background-color: var(--bg-color); border: 4px solid var(--tertiary-neon); top: 25px; border-radius: 50%; z-index: 1; }
+        .timeline-item.left { left: 0; }
+        .timeline-item.right { left: 50%; }
+        .timeline-item.right::after { left: -10px; }
+        .timeline-content { padding: 20px; background-color: rgba(157, 0, 255, 0.1); border: 2px solid var(--tertiary-neon); border-radius: 8px; position: relative; }
+        .timeline-content h3 { font-family: var(--font-title); font-size: 1rem; color: var(--tertiary-neon); }
+        .timeline-content .date { font-size: 1rem; font-weight: bold; color: var(--secondary-neon); margin-bottom: 5px; }
+
+        .card-grid > .card:nth-child(n+4),
+        .timeline > .timeline-item:nth-child(n+4) {
+            display: none;
+        }
+        .card-grid.expanded > .card,
+        .timeline.expanded > .timeline-item {
+            display: block;
+        }
+        .expand-button {
+            display: block;
+            margin: 40px auto 0;
+            padding: 10px 20px;
+            font-family: var(--font-title);
+            font-size: 1rem;
+            color: var(--text-color);
+            background-color: transparent;
+            border: 2px solid var(--primary-neon);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .expand-button:hover {
+            background-color: var(--primary-neon);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px var(--primary-neon);
+        }
+
+        #contact .social-icons { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .social-icons a { color: var(--text-color); transition: all 0.3s ease; }
+        .social-icons a svg { width: 64px; height: 64px; fill: var(--primary-neon); filter: drop-shadow(0 0 5px var(--primary-neon)); transition: all 0.3s ease; }
+        .social-icons a:hover svg { fill: var(--secondary-neon); transform: scale(1.2); filter: drop-shadow(0 0 10px var(--secondary-neon)); }
+
+        .contact-form {
+            max-width: 800px;
+            margin: 60px auto 0;
+            border: 2px solid var(--tertiary-neon);
+            padding: 30px;
+            border-radius: 8px;
+            background-color: rgba(157, 0, 255, 0.05);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-family: var(--font-title);
+            font-size: 1rem;
+            color: var(--tertiary-neon);
+            margin-bottom: 10px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: rgba(13, 12, 29, 0.8);
+            border: 2px solid var(--secondary-neon);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-family: var(--font-body);
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            box-shadow: 0 0 15px var(--secondary-neon);
+            border-color: var(--primary-neon);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: var(--text-color);
+            background-color: transparent;
+            border: 2px solid var(--primary-neon);
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        .submit-btn:hover {
+            background-color: var(--primary-neon);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--primary-neon);
+        }
+
+        footer { text-align: center; padding: 20px; margin-top: 40px; border-top: 1px solid var(--tertiary-neon); font-size: 1rem; }
+
+        @media screen and (max-width: 768px) {
+            body { font-size: 20px; }
+            nav a { font-size: 0.7rem; margin: 5px; }
+            #home .typing-effect { font-size: 1.2rem; }
+            #home .player-name { font-size: 1.8rem; }
+            h2 { font-size: 1.5rem; }
+            .timeline::after { left: 20px; }
+            .timeline-item { width: 100%; padding-left: 60px; padding-right: 15px; }
+            .timeline-item.left, .timeline-item.right { left: 0%; }
+            .timeline-item::after, .timeline-item.right::after { left: 10px; }
+            .skills-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+        }
+        @media screen and (max-width: 480px) {
+            nav { justify-content: space-around; }
+            nav a { margin: 5px 2px; font-size: 0.6rem; }
+            .container { padding: 60px 0; }
+            #home .typing-effect { font-size: 1rem; animation: typing 3.5s steps(22, end) forwards, blink-caret .75s step-end infinite; }
+            #home .player-name { font-size: 1.5rem; }
+            .social-icons a svg { width: 48px; height: 48px; }
+            .contact-form { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================== HEADER / NAVIGASI ================== -->
+    <header>
+        <nav id="navbar">
+            <a href="#home" class="nav-link arcade-button">Home</a>
+            <a href="#about" class="nav-link arcade-button">About</a>
+            <a href="#projects" class="nav-link arcade-button">Projects</a>
+            <a href="#certificates" class="nav-link arcade-button">Certificates</a>
+            <a href="#events" class="nav-link arcade-button">Events</a>
+            <a href="#contact" class="nav-link arcade-button">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- ================== SECTION: HOME (DENGAN ANIMASI BARU) ================== -->
+        <section id="home">
+            <div class="container">
+                <!-- Teks dengan efek ketikan -->
+                <h1 class="typing-effect">WELCOME TO MY ARCADE</h1>
+                <!-- Teks dengan efek slide-in -->
+                <p class="player-name">PLAYER 1: Fajrin Widianto</p>
+            </div>
+        </section>
+
+        <!-- ================== SECTION: ABOUT ME ================== -->
+        <section id="about" class="container">
+            <h2 class="fade-in">INSERT COIN TO START</h2>
+            <div class="about-content">
+                <div class="about-text fade-in">
+                    <p>Hey, gue Fajrin Widianto, mahasiswa Manajemen Informatika dari Politeknik Piksi Input Serang yang hobi banget ngulik teknologi. Dunia gue berputar di antara kode dan desain, dengan minat besar pada masa depan tech seperti Artificial Intelligence dan Blockchain.</p>
+                    <p>Kalau lagi nggak eksplorasi hal baru, gue sibuk membangun berbagai project web, mulai dari logika backend yang kompleks sampai antarmuka yang asik dilihat. Intinya, gue suka mengubah ide jadi karya nyata. Let's build something awesome!</p>
+                </div>
+                <div class="skills-grid fade-in">
+                    <div class="skill-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><polyline points="88 152 32 104 88 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="168 152 224 104 168 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="152" y1="40" x2="104" y2="216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <p>HTML, CSS, JS</p>
+                    </div>
+                    <div class="skill-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M48,200H208V144" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="48" y1="112" x2="208" y2="112" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M48,112H208V56H48Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><ellipse cx="80" cy="172" rx="32" ry="28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><ellipse cx="80" cy="84" rx="32" ry="28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <p>PHP & Laravel</p>
+                    </div>
+                    <div class="skill-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><ellipse cx="128" cy="80" rx="88" ry="48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M40,80v48c0,26.5,39.4,48,88,48s88-21.5,88-48V80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M40,128v48c0,26.5,39.4,48,88,48s88-21.5,88-48V128" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <p>Firebase & MySQL</p>
+                    </div>
+                    <div class="skill-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M208,88v80a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M48,88a80,80,0,0,1,160,0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="128" y1="24" x2="128" y2="88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M168,136a40,40,0,0,1-80,0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <p>Git & GitHub</p>
+                    </div>
+                    <div class="skill-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M184,184H128a48,48,0,0,1-48-48V80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M128,224a96,96,0,1,1,96-96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M184,32l40,40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <p>Canva & Digital Design</p>
+                    </div>
+                     <div class="skill-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M52,168H37.9a7.9,7.9,0,0,1-7.8-9.8l16.2-56.7a7.9,7.9,0,0,1,7.8-6.1h39.8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M160,95.4,176.2,38.7A7.9,7.9,0,0,1,184.1,32h33.8a7.9,7.9,0,0,1,7.8,9.8L209.5,107" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M32,168v24a8,8,0,0,0,8,8H216a8,8,0,0,0,8-8v-24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M92,96l-12,40h96l-12-40a40,40,0,0,0-72,0Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <p>UI/UX Interest</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================== SECTION: PROJECTS ================== -->
+        <section id="projects" class="container">
+            <h2 class="fade-in">PROJECTS SHOWCASE</h2>
+            <div id="projects-grid" class="card-grid">
+                <div class="card fade-in"><img src="https://placehold.co/600x400/ff00ff/ffffff?text=Proyek+1" alt="Gambar Proyek 1"><div class="card-content"><h3>Game "Pixel Runner"</h3><p>Game endless runner 2D dengan aset pixel art yang dibuat menggunakan JavaScript murni.</p><a href="#" class="arcade-button">Mainkan Game &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/00ffff/000000?text=Proyek+2" alt="Gambar Proyek 2"><div class="card-content"><h3>Dashboard Analitik</h3><p>Aplikasi web dashboard dengan visualisasi data interaktif menggunakan D3.js dan React.</p><a href="#" class="arcade-button">Lihat Demo &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/9d00ff/ffffff?text=Proyek+3" alt="Gambar Proyek 3"><div class="card-content"><h3>Situs Musik Synthwave</h3><p>Website promosi untuk artis musik synthwave dengan visualizer audio WebGL.</p><a href="#" class="arcade-button">Kunjungi Situs &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/ff00ff/ffffff?text=Proyek+4" alt="Gambar Proyek 4"><div class="card-content"><h3>Aplikasi Chat Real-time</h3><p>Aplikasi chat yang dibangun dengan Node.js, Express, dan Socket.IO.</p><a href="#" class="arcade-button">Coba Aplikasi &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/00ffff/000000?text=Proyek+5" alt="Gambar Proyek 5"><div class="card-content"><h3>Portfolio 3D</h3><p>Eksperimen portofolio interaktif menggunakan Three.js dan WebGL.</p><a href="#" class="arcade-button">Lihat Eksperimen &rarr;</a></div></div>
+            </div>
+            <button class="expand-button arcade-button" data-target="projects-grid">Lihat Semua</button>
+        </section>
+
+        <!-- ================== SECTION: CERTIFICATES ================== -->
+        <section id="certificates" class="container">
+            <h2 class="fade-in">ACHIEVEMENTS UNLOCKED</h2>
+            <div id="certificates-grid" class="card-grid">
+                <div class="card fade-in"><img src="https://placehold.co/600x400/9d00ff/ffffff?text=Sertifikat+1" alt="Gambar Sertifikat 1"><div class="card-content"><h3>Sertifikasi Frontend Expert</h3><p>Sertifikasi yang membuktikan keahlian dalam teknologi web modern seperti React dan Vue.</p><a href="#" class="arcade-button">Lihat Detail &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/ff00ff/ffffff?text=Sertifikat+2" alt="Gambar Sertifikat 2"><div class="card-content"><h3>UI/UX Design Masterclass</h3><p>Menyelesaikan kelas intensif tentang prinsip desain antarmuka dan pengalaman pengguna.</p><a href="#" class="arcade-button">Lihat Detail &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/00ffff/000000?text=Sertifikat+3" alt="Gambar Sertifikat 3"><div class="card-content"><h3>Cloud Practitioner</h3><p>Memiliki pemahaman fundamental tentang layanan cloud dan arsitekturnya.</p><a href="#" class="arcade-button">Lihat Detail &rarr;</a></div></div>
+                <div class="card fade-in"><img src="https://placehold.co/600x400/9d00ff/ffffff?text=Sertifikat+4" alt="Gambar Sertifikat 4"><div class="card-content"><h3>Python for Data Science</h3><p>Sertifikasi dari platform kursus online terkemuka untuk analisis data menggunakan Python.</p><a href="#" class="arcade-button">Lihat Detail &rarr;</a></div></div>
+            </div>
+            <button class="expand-button arcade-button" data-target="certificates-grid">Lihat Semua</button>
+        </section>
+
+        <!-- ================== SECTION: EVENTS ================== -->
+        <section id="events" class="container">
+            <h2 class="fade-in">SIDE QUESTS & ACTIVITIES</h2>
+            <div id="events-timeline" class="timeline">
+                <div class="timeline-item left fade-in"><div class="timeline-content"><h3>Workshop Web Interaktif</h3><p class="date">Juni 2024</p><p>Menjadi pembicara di workshop tentang penggunaan Web Animations API.</p></div></div>
+                <div class="timeline-item right fade-in"><div class="timeline-content"><h3>Hackathon Nasional</h3><p class="date">Desember 2023</p><p>Juara 2 dalam kompetisi membuat solusi digital untuk UMKM.</p></div></div>
+                <div class="timeline-item left fade-in"><div class="timeline-content"><h3>Pelatihan JavaScript Lanjutan</h3><p class="date">Mei 2023</p><p>Mengikuti pelatihan intensif selama 3 bulan tentang arsitektur JavaScript modern.</p></div></div>
+                <div class="timeline-item right fade-in"><div class="timeline-content"><h3>Kontributor Open Source</h3><p class="date">Januari 2023</p><p>Berkontribusi pada proyek open source populer di GitHub.</p></div></div>
+            </div>
+            <button class="expand-button arcade-button" data-target="events-timeline">Lihat Semua</button>
+        </section>
+
+        <!-- ================== SECTION: CONTACT ================== -->
+        <section id="contact" class="container">
+            <h2 class="fade-in">GAME OVER? CONNECT!</h2>
+            <div class="social-icons fade-in">
+                <a href="#" class="arcade-button" aria-label="GitHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M84,240a23.9,23.9,0,0,0,24-24V168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M172,240a23.9,23.9,0,0,1-24-24V168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M208,160v32a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V160" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M208,96v56a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M208,96a80,80,0,0,0-160,0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="184" cy="128" r="12"/><circle cx="72" cy="128" r="12"/></svg></a>
+                <a href="#" class="arcade-button" aria-label="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="36" y="36" width="184" height="184" rx="8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="120" y1="112" x2="120" y2="176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="84" y1="112" x2="84" y2="176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M120,140a28,28,0,0,1,56,0v36" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="84" cy="80" r="12"/></svg></a>
+                <a href="#" class="arcade-button" aria-label="Email"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="32" y="48" width="192" height="160" rx="8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="224 54 128 144 32 54" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg></a>
+            </div>
+
+            <form action="#" method="POST" class="contact-form fade-in">
+                <div class="form-group">
+                    <label for="name">PLAYER NAME:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">EMAIL:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">MESSAGE:</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn arcade-button">Kirim Pesan</button>
+            </form>
+        </section>
+    </main>
+
+    <!-- ================== FOOTER ================== -->
+    <footer>
+        <p>&copy; 2025 Fajrin Widianto. All rights reserved. Ready for the next level!</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const synth = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: {
+                attack: 0.005,
+                decay: 0.1,
+                sustain: 0.1,
+                release: 0.2
+            },
+            volume: -12 
+        }).toDestination();
+
+        function playSound() {
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            synth.triggerAttackRelease("G4", "16n");
+        }
+
+        const clickableElements = document.querySelectorAll('.arcade-button');
+        clickableElements.forEach(el => {
+            el.addEventListener('click', playSound);
+        });
+
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('main section');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 150) { current = section.getAttribute('id'); }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) { link.classList.add('active'); }
+            });
+        });
+
+        const faders = document.querySelectorAll('.fade-in');
+        const appearOptions = { threshold: 0.2, rootMargin: "0px 0px -50px 0px" };
+        const appearOnScroll = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            });
+        }, appearOptions);
+        faders.forEach(fader => { appearOnScroll.observe(fader); });
+
+        const expandButtons = document.querySelectorAll('.expand-button');
+        expandButtons.forEach(button => {
+            button.removeEventListener('click', playSound); 
+            button.addEventListener('click', function() {
+                playSound();
+                const targetId = this.dataset.target;
+                const container = document.getElementById(targetId);
+                if (container) {
+                    container.classList.toggle('expanded');
+                    this.textContent = container.classList.contains('expanded') ? 'Tampilkan Lebih Sedikit' : 'Lihat Semua';
+                }
+            });
+        });
+
+        const contactForm = document.querySelector('.contact-form');
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted (demo only).');
+        });
+    });
+    </script>
+
+</body>
+</html>
